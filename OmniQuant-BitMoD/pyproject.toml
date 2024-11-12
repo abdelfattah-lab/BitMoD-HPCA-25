@@ -21,7 +21,7 @@ dependencies = [
     "tqdm-multiprocess","zstandard",
     "accelerate", "sentencepiece", "tokenizers>=0.12.1",
     "torch>=2.0.0", "torchvision", 
-    "transformers>=4.45.2", 
+    "transformers==4.45.2", 
     "texttable",
     "toml", "attributedict",
     "protobuf"
