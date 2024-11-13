@@ -1,5 +1,5 @@
 
-# Weight-only quantization using different data types
+# Weight-only quantization using different datatypes
 
 This folder contains the file and script to reproduce the results in **_Table VI_** and **_Table VIII_** of our BitMoD paper. 
 To run the experiments, first change to this directory and activate the **awq-bitmod** conda environment. If you haven't set up the **awq-bitmod** environment, follow the instructions under the **awq-bitmod** folder to set up the environment.
@@ -39,7 +39,7 @@ The following table shows the supported data types
 |  **int{n}**                 | Symmetric integer quantization, {n} should be replaced by the precision (e.g., **int4**) |
 |  **int{n}_asym**            | Asymmetric integer quantization, {n} should be replaced by the precision (e.g., **int4_asym**) |
 |  **fp5_e2m2**, **fp5_e3m1** | FP5 datatype with 2-bit exponent 2-bit mantissa, or 3-bit exponent 1-bit mantissa |
-|  **fp6_e2m3**, **fp5_e3m2** | FP5 datatype with 2-bit exponent 3-bit mantissa, or 3-bit exponent 2-bit mantissa |
+|  **fp6_e2m3**, **fp6_e3m2** | FP6 datatype with 2-bit exponent 3-bit mantissa, or 3-bit exponent 2-bit mantissa |
 |  **mx_fp3**, **mx_fp4**     | [Microscaling](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf) with element datatype **fp3** and **fp4**, respectively |
 |  **mixed_ant**              | [ANT](https://arxiv.org/abs/2208.14286) datatype, currently support 3-bit and 4-bit ANT |
 |  **mixed_er**               | FP4 and FP3 datatype with extra resolution, i.e., FP4_ER and FP3_ER in our BitMoD paper |
