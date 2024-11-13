@@ -11,7 +11,7 @@ Evaluation of Wikitext perplexity
 ```
 python llm_eval_wikitext.py \
   --model ${model} \
-  -wq_bits ${quant_precision} \
+  --wq_bits ${quant_precision} \
   --wq_datatype ${quant_datatype} \
   --wq_groupsize ${quant_groupsize}
 ```
@@ -19,10 +19,12 @@ Evaluation of C4 perplexity
 ```
 python llm_eval_c4.py \
   --model ${model} \
-  -wq_bits ${quant_precision} \
+  --wq_bits ${quant_precision} \
   --wq_datatype ${quant_datatype} \
   --wq_groupsize ${quant_groupsize}
 ```
+where ${model} is the model path to load the LLM, ${quant_precision} is an integer to specify the quantization precision, ${quant_datatype} is the quantization data type (see below for supported data types), ${quant_groupsize} is the quantization group size (we use 128 by default).
+
 We also provide an automatic script **run_exp.sh** to run experiments on different models, data types and precision. You can modify **run_exp.sh** and run massive experiments with
 ```
 bash run_exp.sh
