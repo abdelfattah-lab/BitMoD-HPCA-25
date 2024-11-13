@@ -2,10 +2,10 @@
 # Weight-only quantization using different datatypes
 
 This folder contains the file and script to reproduce the results in **_Table VI_** and **_Table VIII_** of our BitMoD paper. 
-To run the experiments, first change to this directory and activate the **awq** conda environment. If you haven't set up the **awq** environment, follow the instructions under the **awq-mod** folder to set up the environment.
+To run the experiments, first change to this directory and activate the **awq-bitmod** conda environment. If you haven't set up the **awq-bitmod** environment, follow the instructions under the **awq-mod** folder to set up the environment.
 ```
 cd bitmod_quant
-conda activate awq
+conda activate awq-bitmod
 ```
 Evaluation of Wikitext perplexity
 ```
