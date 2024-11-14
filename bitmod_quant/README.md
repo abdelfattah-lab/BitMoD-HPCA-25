@@ -57,4 +57,3 @@ The following table shows the supported data types at different precision
 |  5                    | int5, int5_asym, fp5_e2m2, fp5_e3m1   |
 |  4                    | int4, int4_asym, mx_fp4, mixed_ant, mixed_er, mixed_ea, mixed_bitmod   |
 |  3                    | int3, int3_asym, mx_fp3, mixed_ant, mixed_er, mixed_ea, mixed_bitmod   |
-

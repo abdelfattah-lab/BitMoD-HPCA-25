@@ -1,0 +1,6 @@
+__pycache__/
+
+model_shape_config/*
+results_quant/*
+mem/self_gen/*
+mem/cacti/sample_config_files/*
