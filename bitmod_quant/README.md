@@ -25,7 +25,12 @@ python llm_eval_c4.py \
 ```
 where ${model} is the model path to load the LLM, ${quant_precision} is an integer to specify the quantization precision, ${quant_datatype} is the quantization data type (see below for supported data types), ${quant_groupsize} is the quantization group size (we use 128 by default).
 
-We also provide an automatic script **run_exp.sh** to run experiments on different models, data types and precision. You can modify **run_exp.sh** and run massive experiments with
+We also provide an automatic script **run_exp.sh** to run experiments on different models, data types and precision. 
+Please first change the default HuggingFace directory at the beginning of **run_exp.sh**
+```
+export HF_HOME="YOUR/HF/DIRECTORY"
+```
+Then you can modify **run_exp.sh** (e.g., model_list, datatype_list) and run massive experiments with
 ```
 bash run_exp.sh
 ```
