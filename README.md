@@ -1,5 +1,8 @@
 # BitMoD: Bit-serial Mixture-of-Datatype LLM Acceleration
 
+## News
+- [2024/11] 🔥 BitMoD is accepted to [HPCA 2025](https://hpca-conf.org/2025/) !
+  
 ## Citation
 ```bibtex
 @article{chen2025hpca,
