@@ -2,7 +2,7 @@
 # BitMoD hardware simulator 
 
 This folder contains file and script to reproduce **_Fig. 7_** and **_Fig. 8_** of our BitMoD paper. 
-To run the experiments, first change to this directory and activate the **awq-bitmod** conda environment. If you haven't set up the **awq-bitmod** environment, follow the instructions under the **awq-bitmod** folder to set up the environment.
+To run the experiments, first change to this directory and activate the **awq-bitmod** conda environment. If you haven't set up the **awq-bitmod** environment, follow the instructions under the **AWQ-BitMoD** folder to set up the environment.
 ```
 cd bitmod_sim
 conda activate awq-bitmod
