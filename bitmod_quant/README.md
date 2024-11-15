@@ -2,7 +2,7 @@
 # Weight-only quantization using different datatypes
 
 This folder contains the file and script to reproduce the results in **_Table VI_** and **_Table VIII_** of our BitMoD paper. 
-To run the experiments, first change to this directory and activate the **awq-bitmod** conda environment. If you haven't set up the **awq-bitmod** environment, follow the instructions under the **awq-bitmod** folder to set up the environment.
+To run the experiments, first change to this directory and activate the **awq-bitmod** conda environment. If you haven't set up the **awq-bitmod** environment, follow the instructions under the `awq-bitmod` folder to set up the environment.
 ```
 cd bitmod_quant
 conda activate awq-bitmod
@@ -23,18 +23,18 @@ python llm_eval_c4.py \
   --wq_datatype ${quant_datatype} \
   --wq_groupsize ${quant_groupsize}
 ```
-where ${model} is the model path to load the LLM, ${quant_precision} is an integer to specify the quantization precision, ${quant_datatype} is the quantization data type (see below for supported data types), ${quant_groupsize} is the quantization group size (we use 128 by default).
+where `--model` is the model path to load the LLM, `--wq_bits` is an integer to specify the quantization precision, `wq_datatype` is the quantization data type (see below for supported data types), `--wq_groupsize` is the quantization group size (we use 128 by default).
 
 We also provide an automatic script **run_exp.sh** to run experiments on different models, data types and precision. 
-Please first change the default HuggingFace directory at the beginning of **run_exp.sh**
+Please first change the default HuggingFace directory at the beginning of `run_exp.sh`
 ```
-export HF_HOME="YOUR/HF/DIRECTORY"
+export HF_HOME="your/HF_HOME/directory"
 ```
-Then you can modify **run_exp.sh** (e.g., model_list, datatype_list) and run massive experiments with
+Then you can modify `run_exp.sh` (e.g., model_list, datatype_list) and run massive experiments with
 ```
 bash run_exp.sh
 ```
-The perplexity result will be saved in a folder **results_quant** under this directory.
+The perplexity result will be saved in a folder `results_quant` under this directory.
 
 ## Supported Data Types:
 The following table shows the supported data types
