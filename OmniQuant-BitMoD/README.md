@@ -7,10 +7,11 @@ OmniQuant-BitMoD is the implementation of BitMoD datatype with [OmniQuant](https
 Run the following commands in the `OmniQuant-BitMoD` directory to install the package:
 
 ```bash
+cd OmniQuant-BitMoD
 conda create -n omniquant-bitmod python=3.11 -y
 conda activate omniquant-bitmod
 pip install --upgrade pip 
-pip install -e .
+python -m pip install -e .
 ```
 
 ## OmniQuant-BitMod model zoo
