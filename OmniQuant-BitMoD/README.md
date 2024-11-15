@@ -34,6 +34,6 @@ python main.py --model path/to/llama-2-7b-hf --epochs 20 --output_dir ./log/llam
 # llama-2-7b 4 bits
 python main.py --model path/to/llama-2-7b-hf --epochs 20 --output_dir ./log/llama-2-7b-hf-w4a16g128 --eval_ppl --wbits 4 --abits 16 --group_size 128 --lwc --lwc_lr 0.015 --aug_loss --datatype mod
 ```
-The flag `--datatype` specifies the quantization datatype, and can be `int` for integer quantization or `mod` for BitMoD quantization.
+The flag `--datatype` specifies the quantization datatype, and can be `int` for integer quantization, or `fp` for floating point quantization, or `mod` for BitMoD quantization.
 
 The comprehensive scripts to reproduce the results are available in the `scripts` directory. (please modify the path before running the scripts)
