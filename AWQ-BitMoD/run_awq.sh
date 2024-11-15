@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set your HuggingFace HOME directory to store downloaded model and datasets, default is your own HOME directory.
-export HF_HOME="/share/abdelfattah/temp_yc2367/huggingface"
+export HF_HOME="your/HF_HOME/directory"
 
 # This is the model name list for running AWQ
 # NOTE: Every model name should only contain alphabet numbers and the dash symbol, since the model name will be used to specify the awq-cache file
