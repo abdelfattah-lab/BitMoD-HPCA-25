@@ -1,6 +1,6 @@
-# Omniquant-BitMoD
+# OmniQuant-BitMoD
 
-Omniquant-BitMoD is the implementation of BitMoD datatype with [Omniquant](https://github.com/OpenGVLab/OmniQuant) framework.
+OmniQuant-BitMoD is the implementation of BitMoD datatype with [OmniQuant](https://github.com/OpenGVLab/OmniQuant) framework.
 
 ## Installation 
 
