@@ -1,4 +1,4 @@
-# BitMoD: Bit-serial Mixture-of-Datatype LLM Acceleration
+# BitMoD: Bit-serial Mixture-of-Datatype LLM Acceleration [\[Paper\]](https://arxiv.org/abs/2411.11745)
 
 BitMoD is an algorithm-hardware co-design framework for LLM acceleration using bit-serial hardware with mixture-of-datatypes. It supports diverse precision and data types with a flexible accuracy-efficiency trade-off. 
 
