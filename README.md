@@ -6,18 +6,19 @@ This repository contains the source code for reproducing the experiments of our 
 
 ## News
 - [2024/11] 🔥 BitMoD is accepted to [HPCA 2025](https://hpca-conf.org/2025/) !
-- [2024/10] 🔥 We have extended BitMoD to support [OmniQuant](https://github.com/OpenGVLab/OmniQuant/tree/main) with custom data types.
-- [2024/07] 🔥 We have extended BitMoD to support [AWQ](https://github.com/OpenGVLab/OmniQuant) with custom data types.
+- [2024/10] 🔥 We have extended [OmniQuant](https://github.com/OpenGVLab/OmniQuant/tree/main) to support BitMoD datatypes.
+- [2024/07] 🔥 We have extended [AWQ](https://github.com/OpenGVLab/OmniQuant) and [SmoothQuant](https://github.com/mit-han-lab/smoothquant) to support BitMoD datatypes.
 
 ## Getting Started
-Every folder in this repo is used for a separate set of experiments in our paper. Please go to each folder and follow its `README` to run different experiments. 
+Every folder in this repo is used for a separate set of experiments in the BitMoD paper. Please go to each folder and follow its `README` to run different experiments. 
 
 ## Code Structure
 ```
 Repo Root
+|---- SmoothQuant-BitMoD   # Running SmoothQuant with basic INT and our proposed BitMoD data types
 |---- AWQ-BitMoD           # Running AWQ with basic INT and our proposed BitMoD data types
 |---- OmniQuant-BitMoD     # Running OmniQuant with basic INT and our proposed BitMoD data types
-|---- bitmod-quant         # Weight-only quantization with different precision and data types (e.g. INT, ANT, BitMoD)
+|---- bitmod-quant         # Weight-only quantization with different precision and data types (e.g. INT, FP, BitMoD)
 |---- bitmod-sim           # BitMoD accelerator simulator
 ```
 
