@@ -56,3 +56,7 @@ Repo Root
   year={2025}
 }
 ```
+
+-----------------
+
+_This work is subject to a patent application filed by Cornell University._
