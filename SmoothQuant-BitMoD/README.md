@@ -15,6 +15,8 @@ python setup.py install
 ./run_experiments.sh
 ```
 
+The perplexity results will be saved in the file `results_mod/summary.csv` under this directory.
+
 ## Notes:
 
 This folder is based on [SmoothQuant codebase](https://github.com/mit-han-lab/smoothquant.git)
