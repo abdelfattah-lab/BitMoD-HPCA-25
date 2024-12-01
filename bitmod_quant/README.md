@@ -34,7 +34,7 @@ Then you can modify `run_exp.sh` (e.g., model_list, datatype_list) and run massi
 ```
 bash run_exp.sh
 ```
-The perplexity result will be saved in a folder `results_quant` under this directory.
+The perplexity results will be saved in a folder called `results_quant` under this directory.
 
 ## Supported Data Types:
 The following table shows the supported data types
