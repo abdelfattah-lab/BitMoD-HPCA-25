@@ -53,4 +53,4 @@ The perplexity results will be saved in the folder `results` under this director
     bash run_awq.sh  # will take several hours
     bash run_eval_ppl.sh
     ```
-
+The perplexity result will be saved in a folder called `results` under this directory.
