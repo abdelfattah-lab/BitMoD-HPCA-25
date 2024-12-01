@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Set your HuggingFace HOME directory to store downloaded model and datasets, default is your own HOME directory.
+export HF_HOME="your/HF_HOME/directory"
+
 mkdir -p results_mod
 
 models=(
