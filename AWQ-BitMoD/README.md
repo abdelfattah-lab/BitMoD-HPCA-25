@@ -26,7 +26,7 @@ python -m awq.entry --model_path /PATH/TO/HF_MODEL \
     --run_awq --dump_awq "./awq_cache/${model_name}-w3-bitmod.pt"
 ```
 Here, `w_bit` is the quantization precision (3 or 4), `q_group_size` is the quantization group size (we use 128 by default), `wq_dtype` is the quantization data type (`int` or `bitmod`).
-Note that the `${model_name` variable is used to specify the saved AWQ cache file. We suggest using distinguishable names (e.g. "llama-2-7b", "llama-3-8b") for every model.
+Note that the `${model_name}` variable is used to specify the saved AWQ cache file. We suggest using distinguishable names (e.g. "llama-2-7b", "llama-3-8b") for every model.
 
 2. Evaluate Wikitext and C4 perplexity using the pre-computed AWQ results
 ```bash
