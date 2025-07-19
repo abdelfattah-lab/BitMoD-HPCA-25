@@ -6,25 +6,38 @@ from typing import List
 from mem.mem_instance import MemoryInstance
 from pe_array import PE_Array
 
-# Stripes accelerator
-class Accelerator(PE_Array):
-    PR_SCALING = 1.5 # scaling factor to account for post placement and routing
 
+class Accelerator(PE_Array):
     def __init__(
         self, 
         model_name: str,
         i_prec: int=16, 
+        kv_prec: int=8, 
         w_prec: int=8, 
+        batch_size:int=1,
         is_bit_serial: bool=False,
         pe_dp_size: int=1,
         pe_energy: float=0, 
         pe_area: float=0,  
         pe_array_dim: List[int]=[],
         init_mem: bool=True,
-        context_length: int=256,
+        cxt_len: int=256,
         is_generation: bool=False,
     ): 
-        super().__init__(model_name, i_prec, w_prec, is_bit_serial, pe_dp_size, pe_energy, pe_area, pe_array_dim, context_length, is_generation)
+        super().__init__(
+            model_name=model_name, 
+            i_prec=i_prec, 
+            kv_prec=kv_prec, 
+            w_prec=w_prec, 
+            batch_size=batch_size, 
+            is_bit_serial=is_bit_serial, 
+            pe_dp_size=pe_dp_size, 
+            pe_energy=pe_energy, 
+            pe_area=pe_area, 
+            pe_array_dim=pe_array_dim, 
+            cxt_len=cxt_len, 
+            is_generation=is_generation
+        )
 
         self.cycle_compute = None
         if init_mem:
@@ -40,9 +53,26 @@ class Accelerator(PE_Array):
         for name in self.layer_name_list:
             cycle_layer_compute = self._layer_cycle_compute[name]
             cycle_layer_dram    = self._layer_cycle_dram[name]
+            #print(f'layer name: {name}, compute: {cycle_layer_compute}, dram: {cycle_layer_dram}')
             total_cycle_compute += cycle_layer_compute
             total_cycle += max(cycle_layer_compute, cycle_layer_dram)
         self.cycle_compute = total_cycle_compute
+
+        total_cycle_compute_linear = 0
+        total_cycle_dram_linear = 0
+        total_cycle_compute_attn = 0
+        total_cycle_dram_attn = 0
+
+        for name in self.layer_name_list:
+            if ('attn_qk' in name) or ('attn_v' in name):
+                total_cycle_compute_attn += self._layer_cycle_compute[name]
+                total_cycle_dram_attn += self._layer_cycle_dram[name]
+            else:
+                total_cycle_compute_linear += self._layer_cycle_compute[name]
+                total_cycle_dram_linear += self._layer_cycle_dram[name]
+        print(f'Linear Compute: {total_cycle_compute_linear}, Linear DRAM: {total_cycle_dram_linear}')
+        print(f'Attn Compute:   {total_cycle_compute_attn}, Attn DRAM:   {total_cycle_dram_attn}')
+        print('\n')
         return total_cycle_compute, total_cycle
     
     def _calc_compute_cycle(self):
@@ -51,18 +81,15 @@ class Accelerator(PE_Array):
             w_dim = self.weight_dim[name]
             i_dim = self.input_dim[name]
             o_dim = self.output_dim[name]
+            if ('attn_qk' in name) or ('attn_v' in name):
+                pe_latency = self.pe_latency['attn']
+            else:
+                pe_latency = self.pe_latency['linear']
+
             if w_dim is not None:
                 tile_layer = self._calc_tile_fc(w_dim, o_dim)
-                cycle_layer_compute = tile_layer * self.pe_latency
+                cycle_layer_compute = tile_layer * pe_latency
                 self._layer_cycle_compute[name] = cycle_layer_compute
-    
-    def calc_pe_array_tile(self):
-        total_tile = 0
-        for name in self.layer_name_list:
-            w_dim = self.weight_dim[name]
-            o_dim = self.output_dim[name]
-            total_tile += self._calc_tile_fc(w_dim, o_dim)
-        return total_tile
 
     def _calc_tile_fc(self, w_dim, o_dim):
         pe_dp_size = self.pe_dp_size
@@ -70,9 +97,9 @@ class Accelerator(PE_Array):
         num_pe_col = self.pe_array_dim['w']
 
         # output channel, input channel
-        cout, cin = w_dim
+        _, cout, cin = w_dim
         # num token, output channel
-        num_token, _ = o_dim
+        batch_size, num_token, _ = o_dim
 
         # tile_in_channel:   number of tiles along input channel
         # tile_cout:  number of tiles along output channel
@@ -80,7 +107,7 @@ class Accelerator(PE_Array):
         tile_cout        = math.ceil(cout / num_pe_row)
         tile_token       = math.ceil(num_token / num_pe_col)
 
-        total_tile = (tile_in_channel * tile_cout * tile_token)
+        total_tile = (tile_in_channel * tile_cout * tile_token) * batch_size
         return total_tile
     
     def _calc_dram_cycle(self):
@@ -90,7 +117,7 @@ class Accelerator(PE_Array):
         for name in self.layer_name_list:
             i_prec = self.i_prec
             if ('attn_qk' in name) or ('attn_v' in name):
-                w_prec = self.i_prec
+                w_prec = self.kv_prec
             else:
                 w_prec = self.w_prec
             w_dim = self.weight_dim[name]
@@ -113,45 +140,53 @@ class Accelerator(PE_Array):
     def calc_sram_rd_energy(self):
         w_sram_rd_cost = self.w_sram.r_cost
         i_sram_rd_cost = self.i_sram.r_cost
-        num_pe_row = self.pe_array_dim['h']
-        num_pe_col = self.pe_array_dim['w']
-        if self.cycle_compute is None:
-            self.cycle_compute, _ = self.calc_cycle()
-        num_cycle_compute = self.cycle_compute
-        num_tile = self.calc_pe_array_tile()
 
-        sram_rd_energy = num_tile * (w_sram_rd_cost + i_sram_rd_cost)
+        total_tile = 0
+        for name in self.layer_name_list:
+            w_dim = self.weight_dim[name]
+            o_dim = self.output_dim[name]
+            total_tile += self._calc_tile_fc(w_dim, o_dim)
+
+        sram_rd_energy = total_tile * (w_sram_rd_cost + i_sram_rd_cost)
         return sram_rd_energy
     
     def calc_sram_wr_energy(self):
         total_energy = 0
         for name in self.layer_name_list:
-            w_dim = self.weight_dim[name]
-            i_dim = self.input_dim[name]
-            o_dim = self.output_dim[name]
-            total_energy += self._calc_sram_wr_energy_fc(name, w_dim, i_dim, o_dim, self.w_prec, self.i_prec)
+            total_energy += self._calc_sram_wr_energy_fc(name)
         return total_energy
     
-    def _calc_sram_wr_energy_fc(self, layer_name, w_dim, i_dim, o_dim, w_prec, i_prec):
+    def _calc_sram_wr_energy_fc(self, layer_name):
+        w_dim = self.weight_dim[layer_name]
+        i_dim = self.input_dim[layer_name]
+        o_dim = self.output_dim[layer_name]
+
+        i_prec = self.i_prec
+        o_prec = self.i_prec
+        if ('attn_qk' in layer_name) or ('attn_v' in layer_name):
+            w_prec = self.kv_prec
+        else:
+            w_prec = self.w_prec
+
         w_sram_wr_cost = self.w_sram.w_cost_min
         i_sram_wr_cost = self.i_sram.w_cost_min
         w_sram_min_wr_bw = self.w_sram.w_bw_min
         i_sram_min_wr_bw = self.i_sram.w_bw_min
         num_fetch_w, num_fetch_i = self._layer_mem_refetch[layer_name]
 
-        # output channel, weight hidden size
-        cout, cin_w = w_dim
-        # num token, input hidden size
-        _, cin_i = i_dim
-        # num token, output channel
-        num_token, _ = o_dim
+        # batch_size, output channel, weight hidden size
+        batch_kv, cout_w, cin_w = w_dim
+        # batch size, num token, input hidden size
+        batch_size_in, num_token_in, cin_i = i_dim
+        # batch size, num token, output hidden size
+        batch_size_out, num_token_out, cin_o = o_dim
 
         # write energy, read from DRAM and write to SRAM
-        num_w_sram_wr    = math.ceil(cin_w * w_prec / w_sram_min_wr_bw) * cout
+        num_w_sram_wr    = math.ceil(cin_w * w_prec / w_sram_min_wr_bw) * cout_w * batch_kv
         energy_w_sram_wr = num_w_sram_wr * w_sram_wr_cost * num_fetch_w
-        num_i_sram_wr    = math.ceil(cin_i * i_prec / i_sram_min_wr_bw) * num_token
+        num_i_sram_wr    = math.ceil(cin_i * i_prec / i_sram_min_wr_bw) * num_token_in * batch_size_in
         energy_i_sram_wr = num_i_sram_wr * i_sram_wr_cost * num_fetch_i
-        num_o_sram_wr    = math.ceil(cout * i_prec / i_sram_min_wr_bw) * num_token
+        num_o_sram_wr    = math.ceil(cin_o * o_prec / i_sram_min_wr_bw) * num_token_out * batch_size_out
         energy_o_sram_wr = num_o_sram_wr * i_sram_wr_cost
 
         total_energy = energy_w_sram_wr + energy_i_sram_wr + energy_o_sram_wr
@@ -192,8 +227,9 @@ class Accelerator(PE_Array):
 
         for layer_idx, name in enumerate(self.layer_name_list):
             i_prec = self.i_prec
+            o_prec = self.i_prec
             if ('attn_qk' in name) or ('attn_v' in name):
-                w_prec = self.i_prec
+                w_prec = self.kv_prec
             else:
                 w_prec = self.w_prec
 
@@ -201,15 +237,20 @@ class Accelerator(PE_Array):
             i_dim = self.input_dim[name]
             o_dim = self.output_dim[name]
 
-            # output channel, weight hidden size
-            cout, cin_w = w_dim
-            # num token, input hidden size
-            _, cin_i = i_dim
-            # num token, output channel
-            num_token, _ = o_dim
-            self._w_mem_required[name] = math.ceil(cin_w * w_prec / 8) * cout
-            self._i_mem_required[name] = math.ceil(cin_i * i_prec / 8) * num_token
-            self._o_mem_required[name] = math.ceil(cout * i_prec / 8) * num_token
+            # batch_size, output channel, weight hidden size
+            batch_kv, cout_w, cin_w = w_dim
+            # batch size, num token, input hidden size
+            batch_size_in, num_token_in, cin_i = i_dim
+            # batch size, num token, output hidden size
+            batch_size_out, num_token_out, cin_o = o_dim
+            assert cin_w == cin_i, f'The last dimension of weight and input matrices, {cin_w} and {cin_i}, do not match.'
+            assert cout_w == cin_o, f'The output dimension of weight and output matrices, {cout_w} and {cin_o}, do not match.'
+            assert num_token_in == num_token_out, f'The num_token of input and output matrices, {num_token_in} and {num_token_out}, do not match.'
+            assert batch_size_in == batch_size_out, f'The batch_size of input and output matrices, {batch_size_in} and {batch_size_out}, do not match.'
+            
+            self._w_mem_required[name] = math.ceil(cin_w * w_prec / 8) * cout_w * batch_kv
+            self._i_mem_required[name] = math.ceil(cin_i * i_prec / 8) * num_token_in * batch_size_in
+            self._o_mem_required[name] = math.ceil(cin_o * o_prec / 8) * num_token_out * batch_size_out
 
     def _calc_num_mem_refetch(self):
         # If the on-chip buffer size is not big enough, 
@@ -228,14 +269,10 @@ class Accelerator(PE_Array):
                     num_refetch_weight = math.ceil(i_mem_required / size_sram_i)
                     total_fetch_weight = num_refetch_weight * w_mem_required
                     total_fetch_input  = num_refetch_input * i_mem_required
-                    #print(f'{name}, Need DRAM refetch ...')
-                    #print(f'w_dim: {w_dim}, i_dim: {i_dim}')
                     if ( total_fetch_weight + i_mem_required ) < ( total_fetch_input + w_mem_required ):
-                        #print(f'Refetch weight for {num_refetch_weight} times ...')
                         # refetch all weight for every input tile
                         self._layer_mem_refetch[name] = (num_refetch_weight, 1)
                     else:
-                        #print(f'Refetch input for {num_refetch_input} times ...\n\n')
                         # refetch all input for every weight tile
                         self._layer_mem_refetch[name] = (1, num_refetch_input)
                 else:

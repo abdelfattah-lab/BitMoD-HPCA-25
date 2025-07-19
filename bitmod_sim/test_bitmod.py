@@ -7,23 +7,44 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--is_generation", action="store_true", help="If enabled, then evaluate")
     parser.add_argument("--is_lossless", action="store_true", help="If enabled, then evaluate")
+    parser.add_argument("--batch_size", type=int, default=1, help="The input batch size")
+    parser.add_argument("--cxt_len", type=int, default=256, help="The input context length")
+
     args = parser.parse_args()
     is_generation = args.is_generation
-    is_lossless = args.is_lossless
-    
+    is_lossless   = args.is_lossless
+    batch_size    = args.batch_size
+    cxt_len       = args.cxt_len
+
+    assert batch_size > 0, "The input batch_size must be > 1"
+
+    #################### Set Precision and PE array characteristic ####################
+    pe_dp_size = 4
+    is_bit_serial = True
+    pe_energy = 0.56
+    pe_area   = 1507.7
     if is_generation:
         pe_array_dim = [64, 16]
+    else:
+        pe_array_dim = [32, 32]
+    
+    #################### Set Precision ####################
+    kv_prec = {}
+    for model_name in model_list:
+        kv_prec[model_name] = 8
+
+    if is_generation:
         if is_lossless:
             w_prec = 6.0625
         else:
             w_prec = 3.0625
     else:
-        pe_array_dim = [32, 32]
         if is_lossless:
             w_prec = 6.0625
         else:
             w_prec = 4.0625
     
+    #################### Simulate Perforamnce and Energy ####################
     total_energy_list = [[0, 0] for _ in model_list]
     total_latency_list = [0 for _ in model_list]
 
@@ -31,13 +52,15 @@ if __name__ == "__main__":
         acc = Accelerator(
             model_name=model_name, 
             i_prec=16,
+            kv_prec=kv_prec[model_name],
             w_prec=w_prec,
-            is_bit_serial=True,
-            pe_dp_size=4,
-            pe_energy=0.56,
-            pe_area=1507.7,
+            batch_size=batch_size,
+            is_bit_serial=is_bit_serial,
+            pe_dp_size=pe_dp_size,
+            pe_energy=pe_energy,
+            pe_area=pe_area,
             pe_array_dim=pe_array_dim,
-            context_length=256,
+            cxt_len=cxt_len,
             is_generation=is_generation,
         )
 

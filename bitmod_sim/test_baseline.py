@@ -6,14 +6,25 @@ model_list = ["facebook/opt-1.3b", "microsoft/phi-2", "01-ai/Yi-6B", "meta-llama
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--is_generation", action="store_true", help="If enabled, then evaluate")
+    parser.add_argument("--batch_size", type=int, default=1, help="The input batch size")
+    parser.add_argument("--cxt_len", type=int, default=256, help="The input context length")
+
     args = parser.parse_args()
     is_generation = args.is_generation
+    batch_size    = args.batch_size
+    cxt_len       = args.cxt_len
+
+    assert batch_size > 0, "The input batch_size must be > 1"
     
+    #################### Set PE array characteristic ####################
+    pe_energy = 0.77
+    pe_area   = 1968.7
     if is_generation:
         pe_array_dim = [64, 12]
     else:
         pe_array_dim = [32, 24]
     
+    #################### Simulate Perforamnce and Energy ####################
     total_energy_list = [[0, 0] for _ in model_list]
     total_latency_list = [0 for _ in model_list]
 
@@ -21,13 +32,15 @@ if __name__ == "__main__":
         acc = Accelerator(
             model_name=model_name, 
             i_prec=16,
+            kv_prec=16,
             w_prec=16,
+            batch_size=batch_size,
             is_bit_serial=False,
             pe_dp_size=1,
-            pe_energy=0.77,
-            pe_area=1968.7,
+            pe_energy=pe_energy,
+            pe_area=pe_area,
             pe_array_dim=pe_array_dim,
-            context_length=256,
+            cxt_len=cxt_len,
             is_generation=is_generation,
         )
 

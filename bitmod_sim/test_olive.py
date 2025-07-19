@@ -6,18 +6,21 @@ model_list = ["facebook/opt-1.3b", "microsoft/phi-2", "01-ai/Yi-6B", "meta-llama
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--is_generation", action="store_true", help="If enabled, then evaluate")
+    parser.add_argument("--batch_size", type=int, default=1, help="The input batch size")
+    parser.add_argument("--cxt_len", type=int, default=256, help="The input context length")
+
     args = parser.parse_args()
     is_generation = args.is_generation
+    batch_size    = args.batch_size
+    cxt_len       = args.cxt_len
 
-    w_prec_list = {
-        'facebook/opt-1.3b': 3.875, 
-        'microsoft/phi-2': 4, 
-        '01-ai/Yi-6B': 4.25, 
-        'meta-llama/Llama-2-7b-hf': 3.75, 
-        'meta-llama/Llama-2-13b-hf': 3.75, 
-        'meta-llama/Meta-Llama-3-8B': 3.5, 
-    }
+    assert batch_size > 0, "The input batch_size must be > 1"
 
+    #################### Set PE array characteristic ####################
+    pe_dp_size = 1
+    is_bit_serial = False
+    pe_energy = 0.613
+    pe_area   = 1318.6
     if is_generation:
         pe_array_dim = [72, 16]
     else:
@@ -26,22 +29,34 @@ if __name__ == "__main__":
     total_energy_list = [[0, 0] for _ in model_list]
     total_latency_list = [0 for _ in model_list]
 
-    for idx, model_name in enumerate(model_list):
-        if is_generation:
-            w_prec = w_prec_list[model_name]
-        else:
-            w_prec = 4.5
 
+    #################### Set Precision ####################
+    kv_prec = {}
+    for model_name in model_list:
+        kv_prec[model_name] = 16
+
+    w_prec = {
+        'facebook/opt-1.3b': 4, 
+        'microsoft/phi-2': 4, 
+        '01-ai/Yi-6B': 4, 
+        'meta-llama/Llama-2-7b-hf': 4, 
+        'meta-llama/Llama-2-13b-hf': 4, 
+        'meta-llama/Meta-Llama-3-8B': 4.5, 
+    }
+
+    for idx, model_name in enumerate(model_list):
         acc = Accelerator(
             model_name=model_name, 
             i_prec=16,
-            w_prec=w_prec,
-            is_bit_serial=False,
-            pe_dp_size=1,
-            pe_energy=0.613,
-            pe_area=1318.6,
+            kv_prec=kv_prec[model_name],
+            w_prec=w_prec[model_name],
+            batch_size=batch_size,
+            is_bit_serial=is_bit_serial,
+            pe_dp_size=pe_dp_size,
+            pe_energy=pe_energy,
+            pe_area=pe_area,
             pe_array_dim=pe_array_dim,
-            context_length=256,
+            cxt_len=cxt_len,
             is_generation=is_generation,
         )
 
